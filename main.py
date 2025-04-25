@@ -4,7 +4,7 @@ from src.chat import generate_answer
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("用法: python main.py <你的问题>")
+        print("用法: python main.py “你的问题“")
         sys.exit(1)
 
     query = sys.argv[1]
