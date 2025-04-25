@@ -1,0 +1,34 @@
+#  忽略知识库文件
+documents/
+
+#  忽略向量数据库
+embeddings/
+
+#  忽略环境变量配置文件
+.env
+
+#  Python 编译缓存
+__pycache__/
+*.py[cod]
+*.pyo
+
+#  VSCode 等编辑器文件
+.vscode/
+*.code-workspace
+
+#  Jupyter Notebook 检查点
+.ipynb_checkpoints/
+
+# OS 文件
+.DS_Store
+Thumbs.db
+
+# 虚拟环境（可选）
+.venv/
+env/
+venv/
+
+# 忽略日志或输出文件
+*.log
+*.out
+output.txt
