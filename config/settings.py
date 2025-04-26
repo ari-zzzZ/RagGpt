@@ -8,3 +8,5 @@ EMBEDDING_MODEL = "text-embedding-ada-002"
 CHAT_MODEL = "gpt-3.5-turbo"
 KNOWLEDGE_FOLDER = "./documents"
 INDEX_PATH = "embeddings/index.faiss"
+
+
