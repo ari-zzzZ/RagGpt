@@ -58,6 +58,7 @@ def build_vector_store():
     new_chunks = 0
     for doc in docs:
         src = doc.metadata.get("source")
+        print(f"[Building] 处理文件：{src}")
         if src in existing_sources:
             continue
         chunks = splitter.split_documents([doc])
