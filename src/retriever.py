@@ -10,6 +10,9 @@ from rank_bm25 import BM25Okapi
 _db = None
 _embeddings = OpenAIEmbeddings(model=settings.EMBEDDING_MODEL)
 _reranker = None
+_bm25 = None
+_bm25_docs = None
+
 
 def _load_db():
     #懒加载 FAISS 向量库
@@ -24,6 +27,20 @@ def _load_db():
         )
     return _db
 
+def _load_bm25():
+    """
+    懒加载 BM25 索引，初步稀疏检索
+    """
+    global _bm25, _bm25_docs
+    if _bm25 is None:
+        db = _load_db()
+        # 从 FAISS docstore 中获取所有文档
+        _bm25_docs = list(db.docstore._dict.values())
+        # 简单 tokenizer: 按空白拆分
+        texts = [doc.page_content.split() for doc in _bm25_docs]
+        _bm25 = BM25Okapi(texts)
+    return _bm25, _bm25_docs
+
 def _load_reranker():
     """
     懒加载 CrossEncoder reranker
@@ -36,7 +53,7 @@ def _load_reranker():
 
 def get_topk_docs(query: str, k: int = None):
     """
-    检索并返回带 metadata 的 Document 对象列表，经过 reranker 重排序
+    三阶段检索：BM25 → Dense → Cross-Encoder 重排序
 
     :param query: 用户查询
     :param k: 最终需要的 top k 数量
@@ -44,19 +61,35 @@ def get_topk_docs(query: str, k: int = None):
     """
     topk = k or settings.TOP_K
     db = _load_db()
-    # 初始检索：获取init_k个chunk
-    init_k = 10
-    init_docs = db.similarity_search(query, k=init_k)
-    if not init_docs:
+    # 阶段1: BM25 初筛
+    bm25_k = topk * 20
+    bm25, docs = _load_bm25()
+    tokenized = query.split()
+    scores = bm25.get_scores(tokenized)
+    # 取 BM25 top-n
+    idxs = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:bm25_k]
+    bm25_docs = [docs[i] for i in idxs]
+
+    # 阶段2: Dense 向量检索
+    dense_k = topk * 3
+    dense_docs = db.similarity_search(query, k=dense_k)
+
+    # 合并去重
+    unique = {}
+    for doc in bm25_docs + dense_docs:
+        src = doc.metadata.get('source') or doc.metadata.get('id')
+        unique[src] = doc
+    candidates = list(unique.values())
+    if not candidates:
         return []
-    # rerank 阶段
+
+    # 阶段3: Cross-Encoder 重排序
     reranker = _load_reranker()
-    pairs = [[query, doc.page_content] for doc in init_docs]
-    scores = reranker.predict(pairs)
-    # 按得分降序排列
-    docs_with_scores = sorted(zip(init_docs, scores), key=lambda x: x[1], reverse=True)
-    # 返回 top k 文档
-    return [doc for doc, _ in docs_with_scores[:topk]]
+    pairs = [[query, doc.page_content] for doc in candidates]
+    rerank_scores = reranker.predict(pairs)
+    # 按得分降序取 topk
+    docs_scored = sorted(zip(candidates, rerank_scores), key=lambda x: x[1], reverse=True)
+    return [doc for doc, _ in docs_scored[:topk]]
 
 
 def get_relevant_chunks(query: str, k: int = None):
