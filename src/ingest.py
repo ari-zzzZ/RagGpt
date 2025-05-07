@@ -3,6 +3,7 @@ import fitz
 from langchain_core.documents import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
+from langchain.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from config import settings
 
@@ -38,7 +39,8 @@ def build_vector_store():
     - 再次运行时仅对新增文件进行 embedding 并追加
     注意：settings.INDEX_PATH 应配置为索引目录，而非单个文件路径
     """
-    embeddings = OpenAIEmbeddings(model=settings.EMBEDDING_MODEL)
+    '''embeddings = OpenAIEmbeddings(model=settings.EMBEDDING_MODEL)'''
+    embeddings = HuggingFaceEmbeddings(model_name=settings.EMBEDDING_MODEL)
 
     # 确保索引目录存在或记录为空
     if os.path.isdir(settings.INDEX_PATH):
