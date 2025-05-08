@@ -10,6 +10,6 @@ CHAT_MODEL = "gpt-4o-mini" #"gpt-3.5-turbo"
 KNOWLEDGE_FOLDER = "./documents"
 INDEX_PATH = "embeddings/defaultIndex"
 
-CHUNK_SIZE=300
+CHUNK_SIZE=200
 CHUNK_OVERLAP=50
 TOP_K=5

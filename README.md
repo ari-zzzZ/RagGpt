@@ -13,3 +13,5 @@ python main.py ask "..." --model gpt-4
 
 使用愉快！
 
+hotqa split="validation[:700]" 增量索引完成：新增文档 6480 个，共新增 chunks 25089 个。
+
