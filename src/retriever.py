@@ -103,7 +103,8 @@ def get_topk_docs(query: str, k: int = None):
     docs_scored = sorted(zip(to_rerank, ce_scores), key=lambda x: x[1], reverse=True)
 
     # 返回 topk
-    return [doc for doc, _ in docs_scored[:topk]]
+    #return [doc for doc, _ in docs_scored[:topk]]
+    return db.similarity_search(query, k=topk)
 
 
 def get_relevant_chunks(query: str, k: int = None):

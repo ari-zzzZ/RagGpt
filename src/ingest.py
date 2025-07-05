@@ -55,7 +55,7 @@ def build_vector_store():
         chunk_size=settings.CHUNK_SIZE,
         chunk_overlap=settings.CHUNK_OVERLAP
     )
-
+    #分割逻辑: 先按双换行 ➜ 单换行 ➜ 句号 ➜ 逗号 ➜… 直到 chunk 不超长
     new_files = 0
     new_chunks = 0
     for doc in docs:
@@ -70,6 +70,8 @@ def build_vector_store():
             db = FAISS.from_documents(chunks, embeddings)
         else:
             db.add_documents(chunks)
+
+  #两张表同时增：1. index 存 “向量 → id”  2. docstore 存 “id → Document(原文+元数据)”
 
     # 保存到目录
     os.makedirs(settings.INDEX_PATH, exist_ok=True)
